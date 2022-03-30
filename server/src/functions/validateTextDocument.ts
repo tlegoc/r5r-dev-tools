@@ -1,5 +1,7 @@
-import { Diagnostic, _Connection } from "vscode-languageserver";
+import { Diagnostic, DiagnosticSeverity, _Connection } from "vscode-languageserver";
 import { TextDocument } from "vscode-languageserver-textdocument";
+import { getIndexAtPosition } from "./getIndexAtPosition";
+import { getPositionAtIndex } from "./getPositionAtIndex";
 
 export async function validateTextDocument(text: string, uri: string, connection: _Connection): Promise<void> {
 	// The validator creates diagnostics for all uppercase words length 2 and more
@@ -8,58 +10,45 @@ export async function validateTextDocument(text: string, uri: string, connection
 	const problems = 0;
 	const diagnostics: Diagnostic[] = [];
 
-	//Bracket validation
-	//
-	//
-	//
-	//
-	/*
-	let index = 0;
-	let bracketCount = 0;
-	const bracketIndex: number[] = [];
-	while (index < text.length) {
-	  index++;
-	  if (text[index] == "{") {
-		bracketCount++;
-		bracketIndex.push(index);
-	  } else if (text[index] == "}") {
-		bracketCount--;
-		bracketIndex.pop();
-	  }
-  
-	  if (bracketCount < 0) break;
+	//Make sure the document closes opened brackets
+	if (text.length > 0) {
+		let openedBrackets = 0;
+		const indexes1: number[] = [];
+		const indexes2: number[] = [];
+		for (let i = 0; i < text.length; i++) {
+			if (text[i] === '{') {
+				openedBrackets++;
+				indexes1.push(i);
+				indexes2.pop();
+			}
+			else if (text[i] === '}') {
+				openedBrackets--;
+				indexes1.pop();
+				indexes2.pop();
+			}
+		}
+		if (openedBrackets > 0) {
+			diagnostics.push({
+				severity: DiagnosticSeverity.Error,
+				range: {
+					start: getPositionAtIndex(indexes1[0], text),
+					end: getPositionAtIndex(indexes1[0] + 1, text),
+				},
+				message: `Closing brackets are missing`
+			});
+		} else if (openedBrackets < 0) {
+			diagnostics.push({
+				severity: DiagnosticSeverity.Error,
+				range: {
+					start: getPositionAtIndex(indexes2[0], text),
+					end: getPositionAtIndex(indexes2[0] + 1, text),
+				},
+				message: `Opening brackets are missing`
+			});
+		}
 	}
-  
-	connection.console.log("Bracket delta " + bracketCount);
-	connection.console.log("Bracket index length " + bracketIndex.length);
-	if (bracketCount < 0) {
-	  const diag: Diagnostic = {
-		severity: DiagnosticSeverity.Error,
-		range: {
-		  start: textDocument.positionAt(index),
-		  end: textDocument.positionAt(index + 1),
-		},
-		message: `Unwanted curly bracket at ${textDocument.positionAt(index)}.`,
-		source: "ex",
-	  };
-  
-	  diagnostics.push(diag);
-	} else {
-	  bracketIndex.forEach((x) => {
-		const diag: Diagnostic = {
-		  severity: DiagnosticSeverity.Error,
-		  range: {
-			start: textDocument.positionAt(x),
-			end: textDocument.positionAt(x + 1),
-		  },
-		  message: `Unclosed bracket at ${textDocument.positionAt(x)}.`,
-		  source: "ex",
-		};
-  
-		diagnostics.push(diag);
-	  });
-	}*/
 
 	// Send the computed diagnostics to VSCode.
+	connection.console.log("Sending diagnostic results for " + uri);
 	connection.sendDiagnostics({ uri: uri, diagnostics });
 }

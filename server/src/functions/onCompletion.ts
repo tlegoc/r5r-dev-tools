@@ -6,7 +6,7 @@ import {
 } from "vscode-languageserver";
 import { squirrelDocument } from "../squirrel";
 import { getCurrentFunction } from "./getCurrentFunction";
-import { getCurrentIndexAtPosition } from "./getCurrentIndexAtPosition";
+import { getIndexAtPosition } from "./getIndexAtPosition";
 
 export function onCompletion(
 	_textDocumentPosition: TextDocumentPositionParams,
@@ -20,7 +20,7 @@ export function onCompletion(
 
 	if (!sqDoc) return [];
 
-	const currentIndex = getCurrentIndexAtPosition(
+	const currentIndex = getIndexAtPosition(
 		_textDocumentPosition.position,
 		sqDoc.text
 	);

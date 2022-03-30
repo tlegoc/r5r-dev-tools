@@ -74,11 +74,11 @@ void function MpTitanabilityFusionCore_Init()
 	//	Stealth_Core_Init()
 	//#endif
 
+
+
 	RegisterSignal( "CoreActivated" )
 	RegisterSignal( "CoreBegin" )
 	RegisterSignal( "CoreEnd" )
-
-	
 
 	#if SERVER
 		AddCallback_OnPlayerKilled( TitanCore_PlayerKilledCleanup )
@@ -90,7 +90,7 @@ void function MpTitanabilityFusionCore_Init()
 void function SetUsedCoreCallback( void functionref( entity, entity ) func )
 {
 	file.usedCoreCallback = func
-	
+
 }
 
 void function TitanCore_OnDamage( entity ent, var damageInfo )
