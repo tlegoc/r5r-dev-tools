@@ -127,7 +127,7 @@ function generateFunctions(
 
 			const isFuncRef = funcRefName != undefined;
 
-			connection?.console.log(`Found param ${name} of type ${type}`);
+			//connection?.console.log(`Found param ${name} of type ${type}`);
 			if (isFuncRef) {
 				const svar: squirrelVar = {
 					name: funcRefName,
