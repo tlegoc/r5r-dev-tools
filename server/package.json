@@ -1,7 +1,7 @@
 {
 	"name": "r5r-dev-tools-server",
 	"description": "Example implementation of a language server in node.",
-	"version": "1.0.0a",
+	"version": "1.0.0",
 	"author": "Edorion",
 	"license": "MIT",
 	"engines": {
