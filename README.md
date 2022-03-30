@@ -21,5 +21,6 @@ It works well but could be better, so here's a todo list
 - Context support (server, client, shared, ui)
 - Dot completion
 - Hover
+- Error checking
 
 Feel free to PR, I'm not perfect so my code can be improved, if you have any ideas I would gladly see what you did !

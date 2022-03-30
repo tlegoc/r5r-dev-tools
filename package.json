@@ -5,6 +5,10 @@
   "license": "MIT",
   "version": "1.0.0",
   "publisher": "Edorion",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tlegoc/r5r-dev-tools"
+  },
   "categories": [
     "Programming Languages"
   ],
