@@ -1,0 +1,11 @@
+When: "SERVER || CLIENT"
+Scripts:
+[
+    test.gnut
+]
+
+When: "SERVER"
+Scripts: 
+[
+    test2.gnut
+]

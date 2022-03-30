@@ -1,0 +1,91 @@
+{
+  "name": "r5r-dev-tools",
+  "description": "",
+  "author": "Edorion",
+  "license": "MIT",
+  "version": "1.0.0",
+  "publisher": "Edorion",
+  "categories": [
+    "Programming Languages"
+  ],
+  "keywords": [
+    "multi-root ready"
+  ],
+  "engines": {
+    "vscode": "^1.43.0"
+  },
+  "activationEvents": [
+    "onLanguage:r5squirrel"
+  ],
+  "main": "./client/out/extension",
+  "contributes": {
+    "configuration": {
+      "type": "object",
+      "title": "R5R Dev tools options",
+      "properties": {
+        "r5rDevTools.showAllGlobalFunctions": {
+          "scope": "resource",
+          "type": "boolean",
+          "default": true,
+          "description": "Wether or not should the server show you all available global functions, or only those in document. Higher memory usage."
+        },
+        "r5rDevTools.trace.server": {
+          "scope": "window",
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Traces the communication between VS Code and the language server."
+        }
+      }
+    },
+    "languages": [
+      {
+        "id": "r5squirrel",
+        "aliases": [
+          "Respawn Squirrel",
+          "R5Squirrel"
+        ],
+        "extensions": [
+          "gnut",
+          "nut"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "r5squirrel",
+        "scopeName": "source.squirrel",
+        "path": "./Syntaxes/nut.tmLanguage"
+      }
+    ]
+  },
+  "files.associations": {
+    "*.nut": "r5squirrel",
+    "*.gnut": "r5squirrel"
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -b",
+    "watch": "tsc -b -w",
+    "lint": "eslint ./client/src ./server/src --ext .ts,.tsx",
+    "postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
+    "test": "sh ./scripts/e2e.sh"
+  },
+  "devDependencies": {
+    "@types/mocha": "^8.2.2",
+    "@types/node": "^12.12.0",
+    "@typescript-eslint/eslint-plugin": "^4.23.0",
+    "@typescript-eslint/parser": "^4.23.0",
+    "eslint": "^7.26.0",
+    "mocha": "^8.3.2",
+    "typescript": "^4.4.3"
+  },
+  "dependencies": {
+    "vscode-uri": "^3.0.3"
+  }
+}
