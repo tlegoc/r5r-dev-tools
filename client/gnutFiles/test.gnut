@@ -544,9 +544,11 @@ void function SoulTitanCore_SetExpireTime( entity soul, float expireTime )
 float function SoulTitanCore_GetNextAvailableTime( entity soul )
 {
 	return soul.GetNextCoreChargeAvailable()
+	
 }
 
 float function SoulTitanCore_GetExpireTime( entity soul )
 {
 	return soul.GetCoreChargeExpireTime()
+	
 }

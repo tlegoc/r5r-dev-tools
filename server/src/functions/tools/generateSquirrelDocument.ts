@@ -4,7 +4,7 @@ import {
 	squirrelFunc,
 	squirrelVar,
 	squirrelVarRange,
-} from "../squirrel";
+} from "../../squirrel";
 import { getVariableRange } from "./getVariableRange";
 import { isGlobal } from "./isGlobal";
 
@@ -20,21 +20,22 @@ export function generateSquirrelDocument(
 	uri: string,
 	connection: _Connection | undefined = undefined
 ) {
-
+	let [globalFunctions, localFunctions] = [new Set<squirrelFunc>(), new Set<squirrelFunc>()];
+	let vars = new Set<squirrelVar>();
 	
 	if (text.length > 45000) {
-		connection?.console.log("File too big, skipping");
-		throw new Error(`File too big, ${text.length}/${45000}`);
+		connection?.console.log("File too big, skipping function and var gen");
+	} else {
+		[globalFunctions, localFunctions] = generateFunctions(text, connection);
+		//Weird conversion trick to filter a set
+		//We filter vars that aren't in a function
+		vars = new Set(
+			[...generateVars(text)].filter((v) => v.range != squirrelVarRange.function)
+		);
 	}
 
-	const [globalFunctions, localFunctions] = generateFunctions(text, connection);
 
 	
-	//Weird conversion trick to filter a set
-	//We filter vars that aren't in a function
-	const vars = new Set(
-		[...generateVars(text)].filter((v) => v.range != squirrelVarRange.function)
-	);
 
 	//We generate the document
 	const sqDoc: squirrelDocument = {

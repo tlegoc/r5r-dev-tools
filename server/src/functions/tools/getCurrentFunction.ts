@@ -1,5 +1,5 @@
 import { _Connection } from "vscode-languageserver";
-import { squirrelDocument, squirrelFunc } from "../squirrel";
+import { squirrelDocument, squirrelFunc } from "../../squirrel";
 
 export function getCurrentFunction(
 	sqDoc: squirrelDocument,

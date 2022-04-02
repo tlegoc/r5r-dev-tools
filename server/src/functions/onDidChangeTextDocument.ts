@@ -5,8 +5,8 @@ import {
 import { squirrelDocument } from "../squirrel";
 import { URI } from "vscode-uri";
 import * as fs from "fs";
-import { validateTextDocument } from "./validateTextDocument";
-import { generateSquirrelDocument } from './generateSquirrelDocument';
+import { validateTextDocument } from "./tools/validateTextDocument";
+import { generateSquirrelDocument } from './tools/generateSquirrelDocument';
 
 export async function onDidChangeTextDocument(
 	params: DidChangeTextDocumentParams,
@@ -21,7 +21,9 @@ export async function onDidChangeTextDocument(
 	//connection.console.log(`Document changed: ${uri_fs}, (vscode uri: ${uri_vscode})`);
 
 	//We get the text to validate
-	const text = fs.readFileSync(uri_fs).toString();
+	//const text = fs.readFileSync(uri_fs).toString();
+	//The extension always send the full doc, so we only get one element with everything inside
+	const text = params.contentChanges[0].text;
 
 	//We validate the document.
 	validateTextDocument(text, uri_vscode, connection);	

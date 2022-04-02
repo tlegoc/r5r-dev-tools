@@ -2,8 +2,8 @@ import { DidOpenTextDocumentParams, _Connection } from "vscode-languageserver";
 import { squirrelDocument } from "../squirrel";
 import { URI } from "vscode-uri";
 import * as fs from "fs";
-import { validateTextDocument } from "./validateTextDocument";
-import { generateSquirrelDocument } from './generateSquirrelDocument';
+import { validateTextDocument } from "./tools/validateTextDocument";
+import { generateSquirrelDocument } from './tools/generateSquirrelDocument';
 
 export async function onDidOpenTextDocument(
 	params: DidOpenTextDocumentParams,

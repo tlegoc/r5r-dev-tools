@@ -2,7 +2,7 @@ import { _Connection } from "vscode-languageserver";
 import { squirrelDocument } from "../squirrel";
 import { URI } from "vscode-uri";
 import * as fs from "fs";
-import { generateSquirrelDocument } from "./generateSquirrelDocument";
+import { generateSquirrelDocument } from "./tools/generateSquirrelDocument";
 
 export async function onInitialized(
 	squirrelDocuments: Map<string, squirrelDocument>,

@@ -1,4 +1,4 @@
-import { squirrelDocument, squirrelVarRange } from "../squirrel";
+import { squirrelDocument, squirrelVarRange } from "../../squirrel";
 
 export function getVariableRange(variableName: string, document: string): squirrelVarRange {
 	const globalPattern = new RegExp(`global\\s+const\\s+\\w+\\s+${variableName}`);
