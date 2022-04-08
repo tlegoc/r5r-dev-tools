@@ -27,7 +27,8 @@ export interface squirrelDocument {
 	text: {
 		saved: string;
 		temp: string;
-	}
+	},
+	replication?: squirrelReplicationType;
 }
 
 export interface squirrelVar {

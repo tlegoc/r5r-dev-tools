@@ -2,37 +2,31 @@ import { _Connection } from "vscode-languageserver";
 import {
 	squirrelDocument,
 	squirrelFunc,
-	squirrelReplicationType,
 	squirrelVar,
 	squirrelVarRange,
 } from "../../squirrel";
 import { getReplicationAtIndex } from "./getReplicationAtIndex";
 import { getVariableRange } from "./getVariableRange";
 import { isGlobal } from "./isGlobal";
+import { removeComments } from "./removeComments";
 
 //Yes it's long and complicated
 //You dont know how long it took me
-const functionPattern =
-	/(?<returnType>\w+)(?<spaceone> +function +)(?<functionName>\w+)(?<spacetwo> *\()(?<params>.*)(?<spacethree>\)[\s\S]*?)/g;
+const functionPattern = /(?<returnType>\w+)(?<spaceone> +function +)(?<functionName>\w+)(?<spacetwo> *\()(?<params>.*)(?<spacethree>\)[\s\S]*?)/g;
 const variablePattern = /(?<varType>[\w.]+)\s+(?<varName>\w+)\s*=/g;
 const parameterPattern = /(void +?functionref\([\w, ]+\) +?(?<funcRefName>\w+))|(?<varType>[\w]+)\s+(?<varName>\w+)/g;
 
 
-export function generateSquirrelDocument(
-	text_temp: string,
-	text_saved: string,
-	uri: string,
-	connection: _Connection | undefined = undefined
-) {
+export function generateSquirrelDocument(text_temp: string, text_saved: string, uri: string, connection: _Connection | undefined = undefined) {
 	//We generate functions based on shown document, not saved
-	const text = text_temp;
+	const text = removeComments(text_temp);
 	let [globalFunctions, localFunctions] = [new Set<squirrelFunc>(), new Set<squirrelFunc>()];
 	let vars = new Set<squirrelVar>();
 	
 	if (text.length > 45000) {
 		connection?.console.log("File too big, skipping function and var gen");
 	} else {
-		[globalFunctions, localFunctions] = generateFunctions(text, connection);
+		[globalFunctions, localFunctions] = generateFunctions(text);
 		//Weird conversion trick to filter a set
 		//We filter vars that aren't in a function
 		vars = new Set(
@@ -50,8 +44,8 @@ export function generateSquirrelDocument(
 		localFunctions: localFunctions,
 		vars: vars,
 		text: {
-			saved: text_saved,
-			temp: text_temp,
+			saved: removeComments(text_saved),
+			temp: removeComments(text_temp),
 		}
 	};
 
@@ -91,10 +85,7 @@ function generateVars(text: string): Set<squirrelVar> {
 
 
 
-function generateFunctions(
-	text: string,
-	connection: _Connection | undefined = undefined
-): [Set<squirrelFunc>, Set<squirrelFunc>] {
+function generateFunctions(text: string): [Set<squirrelFunc>, Set<squirrelFunc>] {
 	//We create the sets
 	const globalFunctions: Set<squirrelFunc> = new Set();
 	const localFunctions: Set<squirrelFunc> = new Set();

@@ -14,19 +14,26 @@ export function onCompletion(
 	squirrelDocuments: Map<string, squirrelDocument>,
 	connection: _Connection
 ): CompletionItem[] {
+	//Result
 	const items: CompletionItem[] = [];
 
-	//const document = documents.get(_textDocumentPosition.textDocument.uri);
+	//We get the document
 	const sqDoc = squirrelDocuments.get(_textDocumentPosition.textDocument.uri);
-
+	//Leave if doc invalid
 	if (!sqDoc) return [];
 
+	// CURRENT CONTEXT
+	//
+	//
 	const currentIndex = getIndexAtPosition(
 		_textDocumentPosition.position,
 		sqDoc.text.temp
 	);
-	const currentReplication = getReplicationAtIndex(sqDoc.text.temp, currentIndex);
-
+	const currentReplication = getReplicationAtIndex(
+		sqDoc.text.temp,
+		currentIndex
+	);
+	const currentFunc = getCurrentFunction(sqDoc, currentIndex);
 	const lastChar = sqDoc.text.temp[Math.max(currentIndex - 1, 0)];
 
 	if (lastChar === ".") {
@@ -36,19 +43,20 @@ export function onCompletion(
 		return items;
 	} else {
 		//Normal completion
-		//Functions completion
-		//
-		//
+
+		//FUNCTIONS
 		//
 		//
 
 		//Global functions
-		//
 		squirrelDocuments.forEach((tempDoc) => {
 			tempDoc.globalFunctions.forEach((func) => {
-
 				//Avoid calling server code inside client code, etc
-				if (currentReplication != undefined && currentReplication != func.replication) return;
+				if (
+					currentReplication != undefined &&
+					currentReplication != func.replication
+				)
+					return;
 
 				const item: CompletionItem = {
 					label: func.name,
@@ -80,11 +88,15 @@ export function onCompletion(
 		});
 
 		//Local functions
-		//
 		sqDoc.localFunctions.forEach((func) => {
-			
 			//Avoid calling server code inside client code, etc
-			if (currentReplication != undefined && currentReplication != func.replication) return;
+			if (
+				(currentReplication != undefined &&
+					currentReplication != func.replication) ||
+				(currentReplication == undefined &&
+					sqDoc.replication != func.replication)
+			)
+				return;
 
 			const item: CompletionItem = {
 				label: func.name,
@@ -102,11 +114,11 @@ export function onCompletion(
 			items.push(item);
 		});
 
-		//Variables
+		// VARIABLES
+		//
 		//
 
-		const currentFunc = getCurrentFunction(sqDoc, currentIndex);
-
+		//We get vars that are usable inside this function (local vars)
 		currentFunc?.body.variables.forEach((svar) => {
 			if (svar.declaration > currentIndex) return;
 
@@ -120,6 +132,7 @@ export function onCompletion(
 			items.push(item);
 		});
 
+		//We get parameter vars
 		currentFunc?.parameters.forEach((svar) => {
 			if (svar.declaration > currentIndex) return;
 
