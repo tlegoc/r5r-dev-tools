@@ -13,10 +13,10 @@ export interface squirrelFunc {
 }
 
 export enum squirrelReplicationType {
-	SERVER,
-	CLIENT,
-	SHARED,
-	UI
+	SERVER = "SERVER",
+	CLIENT = "CLIENT",
+	SHARED = "SHARED",
+	UI = "UI"
 }
 
 export interface squirrelDocument {
@@ -24,7 +24,10 @@ export interface squirrelDocument {
 	globalFunctions: Set<squirrelFunc>;
 	vars: Set<squirrelVar>;
 	localFunctions: Set<squirrelFunc>;
-	text: string;
+	text: {
+		saved: string;
+		temp: string;
+	}
 }
 
 export interface squirrelVar {

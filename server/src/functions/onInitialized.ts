@@ -36,7 +36,7 @@ export async function onInitialized(
 			connection.console.log(`${n++}/${files.length}`);
 			try {
 				const text = fs.readFileSync(URI.parse(file).fsPath, "utf8");
-				squirrelDocuments.set(file, generateSquirrelDocument(text, file));
+				squirrelDocuments.set(file, generateSquirrelDocument(text, text, file));
 			} catch (error) {
 				connection.console.log("Error creating squirrel Document: " + error);
 			}

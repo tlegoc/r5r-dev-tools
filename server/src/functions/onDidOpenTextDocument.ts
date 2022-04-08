@@ -24,5 +24,5 @@ export async function onDidOpenTextDocument(
 	//We validate the document.
 	validateTextDocument(text, uri_vscode, connection);
 
-	squirrelDocuments.set(uri_vscode, generateSquirrelDocument(text, uri_vscode, connection));
+	squirrelDocuments.set(uri_vscode, generateSquirrelDocument(text, text, uri_vscode, connection));
 }

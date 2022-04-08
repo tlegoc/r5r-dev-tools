@@ -1,6 +1,5 @@
 import {
 	DidSaveTextDocumentParams,
-	DidChangeTextDocumentParams,
 	_Connection,
 } from "vscode-languageserver";
 import { squirrelDocument } from "../squirrel";
@@ -9,8 +8,8 @@ import * as fs from "fs";
 import { validateTextDocument } from "./tools/validateTextDocument";
 import { generateSquirrelDocument } from './tools/generateSquirrelDocument';
 
-export async function onDidChangeTextDocument(
-	params: DidChangeTextDocumentParams,
+export async function onDidSaveTextDocument(
+	params: DidSaveTextDocumentParams,
 	squirrelDocuments: Map<string, squirrelDocument>,
 	connection: _Connection
 ) {
@@ -22,13 +21,12 @@ export async function onDidChangeTextDocument(
 	//connection.console.log(`Document changed: ${uri_fs}, (vscode uri: ${uri_vscode})`);
 
 	//We get the text to validate
-	const text_temp = params.contentChanges[0].text;
-	const text_saved = fs.readFileSync(uri_fs).toString();
+	const text = fs.readFileSync(uri_fs).toString();
 	
 	
 
 	//We validate the document.
-	validateTextDocument(text_temp, uri_vscode, connection);	
+	validateTextDocument(text, uri_vscode, connection);	
 		
-	squirrelDocuments.set(uri_vscode, generateSquirrelDocument(text_temp, text_saved, uri_vscode));
+	squirrelDocuments.set(uri_vscode, generateSquirrelDocument(text, text, uri_vscode));
 }

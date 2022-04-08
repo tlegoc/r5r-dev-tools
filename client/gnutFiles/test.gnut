@@ -90,7 +90,6 @@ void function MpTitanabilityFusionCore_Init()
 void function SetUsedCoreCallback( void functionref( entity, entity ) func )
 {
 	file.usedCoreCallback = func
-
 }
 
 void function TitanCore_OnDamage( entity ent, var damageInfo )
@@ -498,6 +497,8 @@ void function OnAbilityStart_DashCore( entity player )
 	// Dash recharges fast
 	player.SetDodgePowerDelayScale( 0.05 )
 	player.SetPowerRegenRateScale( 16.0 )
+
+	
 }
 
 //PAS_SHIELDED_CORE
@@ -550,5 +551,4 @@ float function SoulTitanCore_GetNextAvailableTime( entity soul )
 float function SoulTitanCore_GetExpireTime( entity soul )
 {
 	return soul.GetCoreChargeExpireTime()
-	
 }

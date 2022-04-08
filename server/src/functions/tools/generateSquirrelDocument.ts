@@ -2,24 +2,30 @@ import { _Connection } from "vscode-languageserver";
 import {
 	squirrelDocument,
 	squirrelFunc,
+	squirrelReplicationType,
 	squirrelVar,
 	squirrelVarRange,
 } from "../../squirrel";
+import { getReplicationAtIndex } from "./getReplicationAtIndex";
 import { getVariableRange } from "./getVariableRange";
 import { isGlobal } from "./isGlobal";
 
 //Yes it's long and complicated
+//You dont know how long it took me
 const functionPattern =
 	/(?<returnType>\w+)(?<spaceone> +function +)(?<functionName>\w+)(?<spacetwo> *\()(?<params>.*)(?<spacethree>\)[\s\S]*?)/g;
 const variablePattern = /(?<varType>[\w.]+)\s+(?<varName>\w+)\s*=/g;
-//You dont know how much time this took to write
 const parameterPattern = /(void +?functionref\([\w, ]+\) +?(?<funcRefName>\w+))|(?<varType>[\w]+)\s+(?<varName>\w+)/g;
 
+
 export function generateSquirrelDocument(
-	text: string,
+	text_temp: string,
+	text_saved: string,
 	uri: string,
 	connection: _Connection | undefined = undefined
 ) {
+	//We generate functions based on shown document, not saved
+	const text = text_temp;
 	let [globalFunctions, localFunctions] = [new Set<squirrelFunc>(), new Set<squirrelFunc>()];
 	let vars = new Set<squirrelVar>();
 	
@@ -43,7 +49,10 @@ export function generateSquirrelDocument(
 		globalFunctions: globalFunctions,
 		localFunctions: localFunctions,
 		vars: vars,
-		text: text,
+		text: {
+			saved: text_saved,
+			temp: text_temp,
+		}
 	};
 
 	return sqDoc;
@@ -98,7 +107,9 @@ function generateFunctions(
 
 		if (!m.groups) continue;
 
-		//Find the start and end of the function
+		// FUNCTION START END
+		//
+		//
 		let bracketCount = -1;
 		let end = m.index;
 		while ((bracketCount == -1 || bracketCount > 0) && bracketCount < 200) {
@@ -113,9 +124,13 @@ function generateFunctions(
 		}
 
 
+		// PARAMETERS
+		//
+		//
 		const params = m.groups.params;
 		const paramsList: Set<squirrelVar> = new Set();
 
+		//Find parameters that can be accessed as variables
 		let m2: RegExpExecArray | null;
 		while ((m2 = parameterPattern.exec(params))) {
 			
@@ -152,11 +167,19 @@ function generateFunctions(
 
 		}
 
+		// GET REPLICATION
+		//
+		//
+		const replication = getReplicationAtIndex(text, m.index);
 
+		// FUNCTION GENERATION
+		//
+		//
 		const func: squirrelFunc = {
 			name: m.groups.functionName,
 			returnType: m.groups.returnType,
 			parameters: paramsList,
+			replication: replication,
 			body: {
 				start: m.index,
 				end: end,
@@ -169,6 +192,8 @@ function generateFunctions(
 			},
 		};
 
+
+		//Add it to the set
 		if (isGlobal(func.name, text)) globalFunctions.add(func);
 		else localFunctions.add(func);
 	}

@@ -6,11 +6,9 @@ import {
 	createConnection,
 	ProposedFeatures,
 	InitializeParams,
-	DidChangeConfigurationNotification,
 	CompletionItem,
 	TextDocumentSyncKind,
 	InitializeResult,
-	Hover,
 } from "vscode-languageserver/node";
 
 import { squirrelDocument} from "./squirrel";
@@ -18,6 +16,7 @@ import { onDidChangeTextDocument } from "./functions/onDidChangeTextDocument";
 import { onDidOpenTextDocument } from "./functions/onDidOpenTextDocument";
 import { onCompletion } from "./functions/onCompletion";
 import { onInitialized } from "./functions/onInitialized";
+import { onDidSaveTextDocument } from "./functions/onDidSaveTextDocument";
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -98,6 +97,7 @@ connection.onInitialized(() => {
 //Handlers
 connection.onCompletion((x) => onCompletion(x, squirrelDocuments, connection));
 connection.onDidChangeTextDocument((x) => onDidChangeTextDocument(x, squirrelDocuments, connection));
+connection.onDidSaveTextDocument(x => onDidSaveTextDocument(x, squirrelDocuments, connection));
 connection.onDidOpenTextDocument(x => onDidOpenTextDocument(x, squirrelDocuments, connection));
 connection.onDidChangeConfiguration((change) => {
 	// Revalidate all open text documents
