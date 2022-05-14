@@ -1,3 +1,5 @@
+# **CODE IS UGLY, I'LL REDO EVERYTHING WHEN I'LL HAVE THE TIME**
+
 # R5Reloaded dev tools
 
 Coding mods, gamemodes and weapons on apex reloaded is hard. Especially without autocompletion.
@@ -22,5 +24,3 @@ It works well but could be better, so here's a todo list
 - Dot completion
 - Hover
 - Error checking
-
-Feel free to PR, I'm not perfect so my code can be improved, if you have any ideas I would gladly see what you did !
