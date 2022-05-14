@@ -34,113 +34,26 @@ export function onCompletion(
 		currentIndex
 	);
 	const currentFunc = getCurrentFunction(sqDoc, currentIndex);
-	const lastChar = sqDoc.text.temp[Math.max(currentIndex - 1, 0)];
+	//FUNCTIONS
+	//
+	//
 
-	if (lastChar === ".") {
-		//Dot completion
-		//Get last token
-
-		return items;
-	} else {
-		//Normal completion
-
-		//FUNCTIONS
-		//
-		//
-
-		//Global functions
-		squirrelDocuments.forEach((tempDoc) => {
-			tempDoc.globalFunctions.forEach((func) => {
-				//connection?.console?.log(
-				//	`func: ${func.name}, repl: ${func.replication}`
-				//);
-
-				//Avoid calling server code inside client code, etc
-				if (
-					!(
-						(currentReplication.includes(
-							squirrelReplicationType.DOC
-						) &&
-							sqDoc.replication.some((x) =>
-								func.replication.includes(x)
-							)) ||
-						currentReplication.some((x) =>
-							func.replication.includes(x)
-						)
-					)
-				)
-					return;
-
-				const item: CompletionItem = {
-					label: func.name,
-					kind: CompletionItemKind.Function,
-					insertText: func.name,
-					detail: "(global function): " + func.name,
-					documentation: `Returns: ${
-						func.returnType
-					}.\nFound at index ${func.body.start} in ${
-						sqDoc.uri.split("/")[tempDoc.uri.split("/").length - 1]
-					}.${
-						func.replication
-							? "\nReplication: " + func.replication + "."
-							: ""
-					}`,
-				};
-				items.push(item);
-			});
-
-			tempDoc.vars?.forEach((svar) => {
-				//Avoid calling server code inside client code, etc
-				if (
-					!(
-						(currentReplication.includes(
-							squirrelReplicationType.DOC
-						) &&
-							sqDoc.replication.some((x) =>
-								svar.replication.includes(x)
-							)) ||
-						currentReplication.some((x) =>
-							svar.replication.includes(x)
-						)
-					)
-				)
-					return;
-
-				const item: CompletionItem = {
-					label: svar.name,
-					kind: CompletionItemKind.Variable,
-					detail: "(local variable): " + svar.name,
-					documentation: `Type: ${svar.type}.\nFound at index ${svar.declaration}.`,
-				};
-				items.push(item);
-			});
-		});
-
-		//Local functions
-		sqDoc.localFunctions.forEach((func) => {
+	//Global functions
+	squirrelDocuments.forEach((tempDoc) => {
+		tempDoc.globalFunctions.forEach((func) => {
 			//connection?.console?.log(
 			//	`func: ${func.name}, repl: ${func.replication}`
 			//);
-
-			//Avoid calling server code inside client code, etc
-			if (
-				!(
-					(currentReplication.includes(squirrelReplicationType.DOC) &&
-						sqDoc.replication.some((x) =>
-							func.replication.includes(x)
-						)) ||
-					currentReplication.some((x) => func.replication.includes(x))
-				)
-			)
-				return;
 
 			const item: CompletionItem = {
 				label: func.name,
 				kind: CompletionItemKind.Function,
 				insertText: func.name,
-				detail: "(local function): " + func.name,
+				detail: "(global function): " + func.name,
 				documentation: `Returns: ${func.returnType}.\nFound at index ${
 					func.body.start
+				} in ${
+					sqDoc.uri.split("/")[tempDoc.uri.split("/").length - 1]
 				}.${
 					func.replication
 						? "\nReplication: " + func.replication + "."
@@ -150,14 +63,7 @@ export function onCompletion(
 			items.push(item);
 		});
 
-		// VARIABLES
-		//
-		//
-
-		//We get vars that are usable inside this function (local vars)
-		currentFunc?.body.variables.forEach((svar) => {
-			if (svar.declaration > currentIndex) return;
-
+		tempDoc.vars?.forEach((svar) => {
 			//Avoid calling server code inside client code, etc
 			if (
 				!(
@@ -176,36 +82,99 @@ export function onCompletion(
 				detail: "(local variable): " + svar.name,
 				documentation: `Type: ${svar.type}.\nFound at index ${svar.declaration}.`,
 			};
-
 			items.push(item);
 		});
+	});
 
-		//We get parameter vars
-		currentFunc?.parameters.forEach((svar) => {
-			if (svar.declaration > currentIndex) return;
-			
-			//Avoid calling server code inside client code, etc
-			if (
-				!(
-					(currentReplication.includes(squirrelReplicationType.DOC) &&
-						sqDoc.replication.some((x) =>
-							svar.replication.includes(x)
-						)) ||
-					currentReplication.some((x) => svar.replication.includes(x))
-				)
+	//Local functions
+	sqDoc.localFunctions.forEach((func) => {
+		//connection?.console?.log(
+		//	`func: ${func.name}, repl: ${func.replication}`
+		//);
+
+		//Avoid calling server code inside client code, etc
+		if (
+			!(
+				(currentReplication.includes(squirrelReplicationType.DOC) &&
+					sqDoc.replication.some((x) =>
+						func.replication.includes(x)
+					)) ||
+				currentReplication.some((x) => func.replication.includes(x))
 			)
-				return;
+		)
+			return;
 
-			const item: CompletionItem = {
-				label: svar.name,
-				kind: CompletionItemKind.Variable,
-				detail: "(local variable): " + svar.name,
-				documentation: `Type: ${svar.type}.\nFound at index ${svar.declaration}.`,
-			};
+		const item: CompletionItem = {
+			label: func.name,
+			kind: CompletionItemKind.Function,
+			insertText: func.name,
+			detail: "(local function): " + func.name,
+			documentation: `Returns: ${func.returnType}.\nFound at index ${
+				func.body.start
+			}.${
+				func.replication
+					? "\nReplication: " + func.replication + "."
+					: ""
+			}`,
+		};
+		items.push(item);
+	});
 
-			items.push(item);
-		});
+	// VARIABLES
+	//
+	//
 
-		return items;
-	}
+	//We get vars that are usable inside this function (local vars)
+	currentFunc?.body.variables.forEach((svar) => {
+		if (svar.declaration > currentIndex) return;
+
+		//Avoid calling server code inside client code, etc
+		if (
+			!(
+				(currentReplication.includes(squirrelReplicationType.DOC) &&
+					sqDoc.replication.some((x) =>
+						svar.replication.includes(x)
+					)) ||
+				currentReplication.some((x) => svar.replication.includes(x))
+			)
+		)
+			return;
+
+		const item: CompletionItem = {
+			label: svar.name,
+			kind: CompletionItemKind.Variable,
+			detail: "(local variable): " + svar.name,
+			documentation: `Type: ${svar.type}.\nFound at index ${svar.declaration}.`,
+		};
+
+		items.push(item);
+	});
+
+	//We get parameter vars
+	currentFunc?.parameters.forEach((svar) => {
+		if (svar.declaration > currentIndex) return;
+
+		//Avoid calling server code inside client code, etc
+		if (
+			!(
+				(currentReplication.includes(squirrelReplicationType.DOC) &&
+					sqDoc.replication.some((x) =>
+						svar.replication.includes(x)
+					)) ||
+				currentReplication.some((x) => svar.replication.includes(x))
+			)
+		)
+			return;
+
+		const item: CompletionItem = {
+			label: svar.name,
+			kind: CompletionItemKind.Variable,
+			detail: "(local variable): " + svar.name,
+			documentation: `Type: ${svar.type}.\nFound at index ${svar.declaration}.`,
+		};
+
+		items.push(item);
+	});
+
+	return items;
 }
