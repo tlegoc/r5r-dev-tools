@@ -4,10 +4,10 @@ import {
 	TextDocumentPositionParams,
 	_Connection,
 } from "vscode-languageserver";
-import { squirrelDocument } from "../squirrel";
-import { getCurrentFunction } from "./tools/getCurrentFunction";
-import { getIndexAtPosition } from "./tools/getIndexAtPosition";
-import { getReplicationAtIndex } from "./tools/getReplicationAtIndex";
+import { squirrelDocument, squirrelReplicationType } from "../../squirrel";
+import { getCurrentFunction } from "../tools/getCurrentFunction";
+import { getIndexAtPosition } from "../tools/getIndexAtPosition";
+import { getReplicationAtIndex } from "../tools/getReplicationAtIndex";
 
 export function onCompletion(
 	_textDocumentPosition: TextDocumentPositionParams,
@@ -51,10 +51,23 @@ export function onCompletion(
 		//Global functions
 		squirrelDocuments.forEach((tempDoc) => {
 			tempDoc.globalFunctions.forEach((func) => {
+				//connection?.console?.log(
+				//	`func: ${func.name}, repl: ${func.replication}`
+				//);
+
 				//Avoid calling server code inside client code, etc
 				if (
-					currentReplication != undefined &&
-					currentReplication != func.replication
+					!(
+						(currentReplication.includes(
+							squirrelReplicationType.DOC
+						) &&
+							sqDoc.replication.some((x) =>
+								func.replication.includes(x)
+							)) ||
+						currentReplication.some((x) =>
+							func.replication.includes(x)
+						)
+					)
 				)
 					return;
 
@@ -77,6 +90,22 @@ export function onCompletion(
 			});
 
 			tempDoc.vars?.forEach((svar) => {
+				//Avoid calling server code inside client code, etc
+				if (
+					!(
+						(currentReplication.includes(
+							squirrelReplicationType.DOC
+						) &&
+							sqDoc.replication.some((x) =>
+								svar.replication.includes(x)
+							)) ||
+						currentReplication.some((x) =>
+							svar.replication.includes(x)
+						)
+					)
+				)
+					return;
+
 				const item: CompletionItem = {
 					label: svar.name,
 					kind: CompletionItemKind.Variable,
@@ -89,12 +118,19 @@ export function onCompletion(
 
 		//Local functions
 		sqDoc.localFunctions.forEach((func) => {
+			//connection?.console?.log(
+			//	`func: ${func.name}, repl: ${func.replication}`
+			//);
+
 			//Avoid calling server code inside client code, etc
 			if (
-				(currentReplication != undefined &&
-					currentReplication != func.replication) ||
-				(currentReplication == undefined &&
-					sqDoc.replication != func.replication)
+				!(
+					(currentReplication.includes(squirrelReplicationType.DOC) &&
+						sqDoc.replication.some((x) =>
+							func.replication.includes(x)
+						)) ||
+					currentReplication.some((x) => func.replication.includes(x))
+				)
 			)
 				return;
 
@@ -122,6 +158,18 @@ export function onCompletion(
 		currentFunc?.body.variables.forEach((svar) => {
 			if (svar.declaration > currentIndex) return;
 
+			//Avoid calling server code inside client code, etc
+			if (
+				!(
+					(currentReplication.includes(squirrelReplicationType.DOC) &&
+						sqDoc.replication.some((x) =>
+							svar.replication.includes(x)
+						)) ||
+					currentReplication.some((x) => svar.replication.includes(x))
+				)
+			)
+				return;
+
 			const item: CompletionItem = {
 				label: svar.name,
 				kind: CompletionItemKind.Variable,
@@ -135,6 +183,18 @@ export function onCompletion(
 		//We get parameter vars
 		currentFunc?.parameters.forEach((svar) => {
 			if (svar.declaration > currentIndex) return;
+			
+			//Avoid calling server code inside client code, etc
+			if (
+				!(
+					(currentReplication.includes(squirrelReplicationType.DOC) &&
+						sqDoc.replication.some((x) =>
+							svar.replication.includes(x)
+						)) ||
+					currentReplication.some((x) => svar.replication.includes(x))
+				)
+			)
+				return;
 
 			const item: CompletionItem = {
 				label: svar.name,

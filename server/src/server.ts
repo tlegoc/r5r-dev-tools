@@ -12,11 +12,12 @@ import {
 } from "vscode-languageserver/node";
 
 import { squirrelDocument} from "./squirrel";
-import { onDidChangeTextDocument } from "./functions/onDidChangeTextDocument";
-import { onDidOpenTextDocument } from "./functions/onDidOpenTextDocument";
-import { onCompletion } from "./functions/onCompletion";
-import { onInitialized } from "./functions/onInitialized";
-import { onDidSaveTextDocument } from "./functions/onDidSaveTextDocument";
+import { onDidChangeTextDocument } from "./functions/events/onDidChangeTextDocument";
+import { onDidOpenTextDocument } from "./functions/events/onDidOpenTextDocument";
+import { onCompletion } from "./functions/events/onCompletion";
+import { onInitialized } from "./functions/events/onInitialized";
+import { onDidSaveTextDocument } from "./functions/events/onDidSaveTextDocument";
+import { URI } from "vscode-uri";
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -24,6 +25,7 @@ const connection = createConnection(ProposedFeatures.all);
 
 //Converted documents to squirrel architecture (uri, doc)
 const squirrelDocuments: Map<string, squirrelDocument> = new Map();
+let rsonPath: URI | undefined;
 
 //Variables
 //
@@ -91,14 +93,14 @@ connection.onInitialized(() => {
 	//	});
 	//}
 
-	onInitialized(squirrelDocuments, connection);
+	onInitialized(squirrelDocuments, rsonPath, connection);
 });
 
 //Handlers
 connection.onCompletion((x) => onCompletion(x, squirrelDocuments, connection));
-connection.onDidChangeTextDocument((x) => onDidChangeTextDocument(x, squirrelDocuments, connection));
-connection.onDidSaveTextDocument(x => onDidSaveTextDocument(x, squirrelDocuments, connection));
-connection.onDidOpenTextDocument(x => onDidOpenTextDocument(x, squirrelDocuments, connection));
+connection.onDidChangeTextDocument((x) => onDidChangeTextDocument(x, squirrelDocuments, rsonPath, connection));
+connection.onDidSaveTextDocument(x => onDidSaveTextDocument(x, squirrelDocuments, rsonPath, connection));
+connection.onDidOpenTextDocument(x => onDidOpenTextDocument(x, squirrelDocuments, rsonPath, connection));
 connection.onDidChangeConfiguration((change) => {
 	// Revalidate all open text documents
 	/*

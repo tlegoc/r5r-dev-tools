@@ -1,28 +1,41 @@
 import { _Connection } from "vscode-languageserver";
+import { URI } from "vscode-uri";
 import {
 	squirrelDocument,
 	squirrelFunc,
+	squirrelReplicationType,
 	squirrelVar,
 	squirrelVarRange,
 } from "../../squirrel";
 import { getReplicationAtIndex } from "./getReplicationAtIndex";
+import { getSqDocReplication } from "./getSqDocReplication";
 import { getVariableRange } from "./getVariableRange";
-import { isGlobal } from "./isGlobal";
+import { getFunctionRange } from "./getFunctionRange";
 import { removeComments } from "./removeComments";
 
 //Yes it's long and complicated
 //You dont know how long it took me
-const functionPattern = /(?<returnType>\w+)(?<spaceone> +function +)(?<functionName>\w+)(?<spacetwo> *\()(?<params>.*)(?<spacethree>\)[\s\S]*?)/g;
+const functionPattern =
+	/(?<returnType>\w+)(?<spaceone> +function +)(?<functionName>\w+)(?<spacetwo> *\()(?<params>.*)(?<spacethree>\)[\s\S]*?)/g;
 const variablePattern = /(?<varType>[\w.]+)\s+(?<varName>\w+)\s*=/g;
-const parameterPattern = /(void +?functionref\([\w, ]+\) +?(?<funcRefName>\w+))|(?<varType>[\w]+)\s+(?<varName>\w+)/g;
+const parameterPattern =
+	/(void +?functionref\([\w, ]+\) +?(?<funcRefName>\w+))|(?<varType>[\w]+)\s+(?<varName>\w+)/g;
 
-
-export function generateSquirrelDocument(text_temp: string, text_saved: string, uri: string, connection: _Connection | undefined = undefined) {
+export function generateSquirrelDocument(
+	text_temp: string,
+	text_saved: string,
+	uri: URI,
+	rsonPath: URI | undefined,
+	connection: _Connection | undefined
+): squirrelDocument {
 	//We generate functions based on shown document, not saved
 	const text = removeComments(text_temp);
-	let [globalFunctions, localFunctions] = [new Set<squirrelFunc>(), new Set<squirrelFunc>()];
+	let [globalFunctions, localFunctions] = [
+		new Set<squirrelFunc>(),
+		new Set<squirrelFunc>(),
+	];
 	let vars = new Set<squirrelVar>();
-	
+
 	if (text.length > 45000) {
 		connection?.console.log("File too big, skipping function and var gen");
 	} else {
@@ -30,29 +43,29 @@ export function generateSquirrelDocument(text_temp: string, text_saved: string, 
 		//Weird conversion trick to filter a set
 		//We filter vars that aren't in a function
 		vars = new Set(
-			[...generateVars(text)].filter((v) => v.range != squirrelVarRange.function)
+			[...generateVars(text)].filter(
+				(v) => v.range != squirrelVarRange.function
+			)
 		);
 	}
 
-
-	
+	const rep = getSqDocReplication(uri, rsonPath, connection);
 
 	//We generate the document
 	const sqDoc: squirrelDocument = {
-		uri: uri,
+		uri: uri.toString(),
 		globalFunctions: globalFunctions,
 		localFunctions: localFunctions,
 		vars: vars,
 		text: {
 			saved: removeComments(text_saved),
 			temp: removeComments(text_temp),
-		}
+		},
+		replication: rep,
 	};
 
 	return sqDoc;
 }
-
-
 
 function generateVars(text: string): Set<squirrelVar> {
 	const vars: Set<squirrelVar> = new Set();
@@ -67,12 +80,15 @@ function generateVars(text: string): Set<squirrelVar> {
 		//If we don't have a group, we skip
 		if (!m.groups) continue;
 
+		const replication = getReplicationAtIndex(text, m.index);
+
 		//We generate the variable
 		const svar: squirrelVar = {
 			name: m.groups.varName.trim(),
 			declaration: m.index,
 			type: m.groups.varType.trim(),
 			range: getVariableRange(m.groups.varName, text),
+			replication: replication,
 		};
 
 		//We add it to the set
@@ -83,9 +99,9 @@ function generateVars(text: string): Set<squirrelVar> {
 	return vars;
 }
 
-
-
-function generateFunctions(text: string): [Set<squirrelFunc>, Set<squirrelFunc>] {
+function generateFunctions(
+	text: string
+): [Set<squirrelFunc>, Set<squirrelFunc>] {
 	//We create the sets
 	const globalFunctions: Set<squirrelFunc> = new Set();
 	const localFunctions: Set<squirrelFunc> = new Set();
@@ -114,7 +130,6 @@ function generateFunctions(text: string): [Set<squirrelFunc>, Set<squirrelFunc>]
 			}
 		}
 
-
 		// PARAMETERS
 		//
 		//
@@ -124,10 +139,8 @@ function generateFunctions(text: string): [Set<squirrelFunc>, Set<squirrelFunc>]
 		//Find parameters that can be accessed as variables
 		let m2: RegExpExecArray | null;
 		while ((m2 = parameterPattern.exec(params))) {
-			
 			if (!m2.groups) continue;
 
-			
 			const type = m2.groups.varType;
 			const name = m2.groups.varName;
 			const funcRefName = m2.groups.funcRefName;
@@ -140,22 +153,32 @@ function generateFunctions(text: string): [Set<squirrelFunc>, Set<squirrelFunc>]
 					name: funcRefName,
 					type: "functionRef",
 					declaration: m.index,
-					range: squirrelVarRange.function
+					range: squirrelVarRange.function,
+					replication: [
+						squirrelReplicationType.CLIENT,
+						squirrelReplicationType.SERVER,
+						squirrelReplicationType.DEV,
+						squirrelReplicationType.UI,
+					],
 				};
 
 				paramsList.add(svar);
-			}
-			else {
+			} else {
 				const svar: squirrelVar = {
 					name: name,
 					type: type,
 					declaration: m.index,
-					range: squirrelVarRange.function
+					range: squirrelVarRange.function,
+					replication: [
+						squirrelReplicationType.CLIENT,
+						squirrelReplicationType.SERVER,
+						squirrelReplicationType.DEV,
+						squirrelReplicationType.UI,
+					],
 				};
 
 				paramsList.add(svar);
 			}
-
 		}
 
 		// GET REPLICATION
@@ -183,9 +206,8 @@ function generateFunctions(text: string): [Set<squirrelFunc>, Set<squirrelFunc>]
 			},
 		};
 
-
 		//Add it to the set
-		if (isGlobal(func.name, text)) globalFunctions.add(func);
+		if (getFunctionRange(func.name, text)) globalFunctions.add(func);
 		else localFunctions.add(func);
 	}
 

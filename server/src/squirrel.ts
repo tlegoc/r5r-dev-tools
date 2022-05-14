@@ -3,7 +3,7 @@ export interface squirrelFunc {
 	parameters: Set<squirrelVar>;
 	returnType: string;
 	documentation?: string;
-	replication?: squirrelReplicationType;
+	replication: squirrelReplicationType[];
     body: { 
 		start: number;
 		end: number;
@@ -15,8 +15,9 @@ export interface squirrelFunc {
 export enum squirrelReplicationType {
 	SERVER = "SERVER",
 	CLIENT = "CLIENT",
-	SHARED = "SHARED",
-	UI = "UI"
+	UI = "UI",
+	DEV = "DEV",
+	DOC = "DOC"
 }
 
 export interface squirrelDocument {
@@ -28,7 +29,7 @@ export interface squirrelDocument {
 		saved: string;
 		temp: string;
 	},
-	replication?: squirrelReplicationType;
+	replication: squirrelReplicationType[];
 }
 
 export interface squirrelVar {
@@ -36,10 +37,11 @@ export interface squirrelVar {
 	name: string;
 	declaration: number;
 	range: squirrelVarRange;
+	replication: squirrelReplicationType[];
 }
 
 export enum squirrelVarRange {
-	global,
-	document,
-	function
+	global = "global",
+	document = "document",
+	function = "function"
 }

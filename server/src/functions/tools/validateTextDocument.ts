@@ -1,5 +1,4 @@
-import { Diagnostic, DiagnosticSeverity, _Connection } from "vscode-languageserver";
-import { getPositionAtIndex } from "./getPositionAtIndex";
+import { Diagnostic, _Connection } from "vscode-languageserver";
 
 export async function validateTextDocument(text: string, uri: string, connection: _Connection): Promise<void> {
 	// The validator creates diagnostics for all uppercase words length 2 and more

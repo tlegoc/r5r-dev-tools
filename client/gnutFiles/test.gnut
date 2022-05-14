@@ -95,7 +95,6 @@ void function SetUsedCoreCallback( void functionref( entity, entity ) func )
 void function TitanCore_OnDamage( entity ent, var damageInfo )
 {
 	
-	
 }
 #endif
 
@@ -117,10 +116,10 @@ bool function OnAbilityCharge_TitanCore( entity weapon )
 
 	entity player = weapon.GetWeaponOwner()
 
-
 	#if CLIENT
 	if ( !InPrediction() || IsFirstTimePredicted() )
 	{
+
 	#endif
 		// printt( "chargebegin" )
 	#if SERVER
@@ -132,6 +131,8 @@ bool function OnAbilityCharge_TitanCore( entity weapon )
 	#endif
 
 	player.Signal( "CoreActivated" )
+
+	
 
 	return true
 }
@@ -345,9 +346,11 @@ void function CoreChargeEnd( entity titan, entity weapon )
 		if ( soul != null )
 			CleanupCoreEffect( soul )
 	}
+
 }
 #endif // #if SERVER
 
+ANIM_FLYIN_IDLE
 bool function IsCoreChargeAvailable( entity player, entity soul )
 {
 	if ( soul == null )
